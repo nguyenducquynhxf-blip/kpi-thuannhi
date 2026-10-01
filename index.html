@@ -37,7 +37,7 @@ nav.tabs button[aria-selected="true"]{background:var(--accent-soft);color:var(--
 .btn.ghost{background:none}
 .btn:disabled{opacity:.5;cursor:not-allowed}
 /* ===== form sheet ===== */
-.form{background:var(--surface);border:1px solid var(--line);border-radius:10px;margin-top:16px;overflow:clip}
+.form{background:var(--surface);border:1px solid var(--line);border-radius:10px;margin-top:16px;overflow:visible;overflow:clip}
 .form .ttl{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:baseline;flex-wrap:wrap}
 .form .ttl h1{margin:0;font-size:19px;letter-spacing:-.01em}
 .form .ttl small{color:var(--muted)}
@@ -287,7 +287,7 @@ const WAYN={1:'① Cách chính',2:'② Dự phòng 1',3:'③ Dự phòng 2'};
 let S={pos:null,obj:['','',''],ways:{},info:{},lock:null,appr:{ql:{},hcns:{}}}, downloads=undefined, cur=null; const openCards=new Set();
 /* mở trang luôn bắt đầu trống – không khôi phục phiếu cũ */
 let H={files:[]}; try{const h=JSON.parse(localStorage.getItem('kpi-tnc-hcns')||'null'); if(h&&h.files) H=h;}catch(e){}
-$('#ver').textContent='Công ty TNHH MTV Thuận Nhĩ · bản '+D.version; $('#fVer').value=D.version;
+$('#ver').textContent='Công ty TNHH MTV Thuận Nhĩ · bản '+D.version+' · web 01/10 11:00'; $('#fVer').value=D.version;
 const INFO=['fName','fId','fUnit','fUnitOther','fFrom','fTo','fDate','fMgr'];
 const unitText=I=>I.fUnit==='__other'?(I.fUnitOther||''):(I.fUnit||'');
 const fmtD=d=>{if(!d)return'';const [y,m,dd]=d.split('-');return dd&&m?`${dd}/${m}/${y}`:d};
