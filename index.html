@@ -37,7 +37,7 @@ nav.tabs button[aria-selected="true"]{background:var(--accent-soft);color:var(--
 .btn.ghost{background:none}
 .btn:disabled{opacity:.5;cursor:not-allowed}
 /* ===== form sheet ===== */
-.form{background:var(--surface);border:1px solid var(--line);border-radius:10px;margin-top:16px;overflow:hidden}
+.form{background:var(--surface);border:1px solid var(--line);border-radius:10px;margin-top:16px;overflow:clip}
 .form .ttl{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:baseline;flex-wrap:wrap}
 .form .ttl h1{margin:0;font-size:19px;letter-spacing:-.01em}
 .form .ttl small{color:var(--muted)}
@@ -445,19 +445,21 @@ async function buildPhieuBlob(P,lock){
   P.obj.forEach((oc,i)=>{ if(kr1[i]) ws.cell(kr1[i],1).value(oc) });
   /* ---- định dạng nội dung từng ô (rich text) để dễ đọc ---- */
   try{ if(XlsxPopulate.RichText){
-    const NAVY='1F4E78',ORA='C55A11',GREY='595959',RED='C00000',GRN='375623';
+    const NAVY='FF1F4E78',ORA='FFC55A11',GREY='FF595959',RED='FFC00000',GRN='FF375623';
+    const ORD=['rFont','charset','family','b','i','strike','outline','shadow','condense','extend','color','sz','u','vertAlign','scheme'];
+    const fixRT=rt=>{try{for(let i=0;i<rt.length;i++){const f=rt.get(i);if(f&&f._fontNode&&f._fontNode.children)f._fontNode.children.sort((a,b)=>ORD.indexOf(a.name)-ORD.indexOf(b.name))}}catch(e){}return rt};
     const RT=()=>new XlsxPopulate.RichText();
     const add=(rt,s,o)=>rt.add(String(s==null?'':s),Object.assign({fontFamily:'Arial',fontSize:9},o||{}));
     const lab=(rt,s,c)=>add(rt,s,{bold:true,fontColor:c||NAVY});
     const CW=[14,26,6,12,46,22,44,44,44,30,28];
     const nl=(s,wch)=>String(s||'').split('\n').reduce((a,x)=>a+Math.max(1,Math.ceil(x.length/(wch*1.15))),0);
-    const way=(x,ct,bm)=>{const rt=RT();add(rt,x);lab(rt,'\nCông thức: ');add(rt,ct);lab(rt,'\nMẫu: ');add(rt,(bm||[]).join(', '),{bold:true});return rt};
+    const way=(x,ct,bm)=>{const rt=RT();add(rt,x);lab(rt,'\nCông thức: ');add(rt,ct);lab(rt,'\nMẫu: ');add(rt,(bm||[]).join(', '),{bold:true});return fixRT(rt)};
     const fillKR=(r,t,krLabel,code)=>{
       ws.cell(r,4).value(code);
-      let rt=RT();add(rt,t.noidung,{fontSize:10});add(rt,`\n${t.kieu} · ghi: ${t.tansuat}`,{italic:true,fontColor:GREY});lab(rt,'\n\nBẰNG CHỨNG CẦN NỘP',ORA);add(rt,'\n'+(t.bc||''),{fontColor:'7F3F00'});ws.cell(r,5).value(rt);
-      rt=RT();add(rt,t.chiso,{fontSize:10});lab(rt,'\nNgưỡng: ');add(rt,t.nguong,{bold:true,fontColor:NAVY});ws.cell(r,6).value(rt);
+      let rt=RT();add(rt,t.noidung,{fontSize:10});add(rt,`\n${t.kieu} · ghi: ${t.tansuat}`,{italic:true,fontColor:GREY});lab(rt,'\n\nBẰNG CHỨNG CẦN NỘP',ORA);add(rt,'\n'+(t.bc||''),{fontColor:'FF7F3F00'});ws.cell(r,5).value(fixRT(rt));
+      rt=RT();add(rt,t.chiso,{fontSize:10});lab(rt,'\nNgưỡng: ');add(rt,t.nguong,{bold:true,fontColor:NAVY});ws.cell(r,6).value(fixRT(rt));
       ws.cell(r,7).value(way(t.cachchinh,t.congthuc,t.bm1)); ws.cell(r,8).value(way(t.dp1x,t.dp1_ct,t.dp1_bm)); ws.cell(r,9).value(way(t.dp2x,t.dp2_ct,t.dp2_bm));
-      rt=RT();lab(rt,'Nguồn: ');add(rt,t.nguon);lab(rt,'\nNgười ghi: ');add(rt,t.nguoighi);lab(rt,'\nXác nhận: ');add(rt,t.xacnhan);lab(rt,'\nTần suất: ');add(rt,t.tansuat);ws.cell(r,10).value(rt);
+      rt=RT();lab(rt,'Nguồn: ');add(rt,t.nguon);lab(rt,'\nNgười ghi: ');add(rt,t.nguoighi);lab(rt,'\nXác nhận: ');add(rt,t.xacnhan);lab(rt,'\nTần suất: ');add(rt,t.tansuat);ws.cell(r,10).value(fixRT(rt));
       ws.cell(r,11).value(t.ghichu||'—');
       const texts=[null,null,null,null,`${t.noidung}\n${t.kieu} · ghi: ${t.tansuat}\n\nBẰNG CHỨNG CẦN NỘP\n${t.bc||''}`,`${t.chiso}\nNgưỡng: ${t.nguong}`,`${t.cachchinh}\nCông thức: ${t.congthuc}\nMẫu: ${(t.bm1||[]).join(', ')}`,`${t.dp1x}\nCông thức: ${t.dp1_ct}\nMẫu: ${(t.dp1_bm||[]).join(', ')}`,`${t.dp2x}\nCông thức: ${t.dp2_ct}\nMẫu: ${(t.dp2_bm||[]).join(', ')}`,`Nguồn: ${t.nguon}\nNgười ghi: ${t.nguoighi}\nXác nhận: ${t.xacnhan}\nTần suất: ${t.tansuat}`,t.ghichu||''];
       const lines=Math.max(...texts.map((s,i)=>s?nl(s,CW[i]):0)); const h=Math.min(320,Math.max(90,lines*12+10)); ws.row(r).height(h); return h;
@@ -466,12 +468,12 @@ async function buildPhieuBlob(P,lock){
     P.obj.forEach((oc,i)=>{ const o=D.objs[oc], r0=kr1[i]; if(!r0||!o)return; const must=cards.find(c=>c.o===oc)?.m;
       let tot=0; o.targets.forEach((t,j)=>{ tot+=fillKR(r0+j,t,`KR${j+1}`,`${oc}-${t.sfx}`) });
       for(let j=o.targets.length;j<3;j++){ [4,5,6,7,8,9,10,11].forEach(c=>ws.cell(r0+j,c).value('')); ws.row(r0+j).height(24); tot+=24 }
-      const rt=RT(); lab(rt,`O${i+1}: `+o.name,NAVY); if(must)lab(rt,'\nThẻ BẮT BUỘC',RED); lab(rt,'\n\nKiểm tra: Hợp lệ',GRN); add(rt,'\nĐạt khi TB các KR ≥ 90%',{fontColor:GREY}); lab(rt,'\n\nKết quả mong đợi: '); add(rt,o.kq||''); ws.cell(r0,2).value(rt);
+      const rt=RT(); lab(rt,`O${i+1}: `+o.name,NAVY); if(must)lab(rt,'\nThẻ BẮT BUỘC',RED); lab(rt,'\n\nKiểm tra: Hợp lệ',GRN); add(rt,'\nĐạt khi TB các KR ≥ 90%',{fontColor:GREY}); lab(rt,'\n\nKết quả mong đợi: '); add(rt,o.kq||''); ws.cell(r0,2).value(fixRT(rt));
       const need=nl(`O${i+1}: ${o.name}\nThẻ BẮT BUỘC\n\nKiểm tra\nĐạt khi\n\nKết quả mong đợi: ${o.kq||''}`,CW[1])*12+10; if(tot<need){const last=r0+2; ws.row(last).height(ws.row(last).height()+(need-tot))}
     });
     let dtRow=0; for(let r=1;r<=last;r++){ if(ws.cell(r,3).value()==='DT') dtRow=r }
-    const p3=p3Cards(p)[0]; if(dtRow&&p3){ const o=D.objs[p3.o], t=o.targets[0]; fillKR(dtRow,t,'DT',`${p3.o}-${t.sfx}`); ws.cell(dtRow,1).value(p3.o); const rt=RT(); lab(rt,o.name,ORA); add(rt,'\n\n'+(o.kq||'')); ws.cell(dtRow,2).value(rt); ws.row(dtRow).height(Math.max(ws.row(dtRow).height(),nl(o.name+'\n\n'+(o.kq||''),CW[1])*12+10)) }
-    ws.freezePanes(0,0);
+    const p3=p3Cards(p)[0]; if(dtRow&&p3){ const o=D.objs[p3.o], t=o.targets[0]; fillKR(dtRow,t,'DT',`${p3.o}-${t.sfx}`); ws.cell(dtRow,1).value(p3.o); const rt=RT(); lab(rt,o.name,ORA); add(rt,'\n\n'+(o.kq||'')); ws.cell(dtRow,2).value(fixRT(rt)); ws.row(dtRow).height(Math.max(ws.row(dtRow).height(),nl(o.name+'\n\n'+(o.kq||''),CW[1])*12+10)) }
+    ws.resetPanes();
   } }catch(e){ console.warn('rich text phiếu',e) }
   if(sigRow&&L) ws.cell(sigRow+1,8).value(`HCNS đã duyệt – ${L.by||''} ${L.date||''}`);
   const wd=wb.sheet('DATA'); wd.cell('A1').value('KPI_TNC_DATA'); wd.cell('A2').value(JSON.stringify(Object.assign({},P,{lock:L||null,sig:sign(P)})));
