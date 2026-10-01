@@ -176,8 +176,7 @@ table.plain{border-collapse:collapse;width:100%;font-size:13px}
         <label><span>Họ tên</span><input id="fName" placeholder="Nhập họ tên"></label>
         <label><span>Mã nhân viên</span><input id="fId" placeholder="(để trống nếu chưa có)"></label>
         <label><span>Vị trí</span><select id="fPos"></select></label>
-        <label><span>Cơ sở / phòng</span><select id="fUnit"><option value="">— Chọn cơ sở / phòng —</option><optgroup label="Nhà hàng"><option>Nhà hàng Trần Phú</option><option>Nhà hàng DINK</option><option>Nhà hàng Lê Thanh Nghị</option></optgroup><optgroup label="Văn phòng"><option>Phòng Hành chính – Nhân sự</option><option>Phòng Tài chính – Kế toán</option><option>Phòng Marketing</option><option>Thu mua – Kho</option><option>IT &amp; Dữ liệu</option><option>Kiểm soát nội bộ</option><option>Ban Giám đốc</option></optgroup><optgroup label="Kênh phân phối"><option>Kênh GT</option><option>Kênh MT</option><option>Kênh KA</option><option>Văn phòng kênh phân phối</option></optgroup><option value="__other">Khác (ghi rõ)…</option></select></label>
-        <label id="unitOtherRow" hidden><span>Ghi rõ</span><input id="fUnitOther" placeholder="Tên cơ sở / phòng"></label>
+        <label><span>Cơ sở / phòng</span><select id="fUnit"><option value="">— Chọn cơ sở / phòng —</option><optgroup label="Nhà hàng"><option>Nhà hàng Trần Phú</option><option>Nhà hàng DINK</option><option>Nhà hàng Lê Thanh Nghị</option></optgroup><optgroup label="Văn phòng"><option>Phòng Hành chính – Nhân sự</option><option>Phòng Tài chính – Kế toán</option><option>Phòng Marketing</option><option>Thu mua – Kho</option><option>IT &amp; Dữ liệu</option><option>Kiểm soát nội bộ</option><option>Ban Giám đốc</option></optgroup><optgroup label="Kênh phân phối"><option>Kênh GT</option><option>Kênh MT</option><option>Kênh KA</option><option>Văn phòng kênh phân phối</option></optgroup></select></label>
         <label><span>Kỳ đánh giá từ</span><input id="fFrom" type="date"></label>
         <label><span>Đến ngày</span><input id="fTo" type="date"></label>
         <label><span>Ngày đăng ký</span><input id="fDate" type="date"></label>
@@ -287,9 +286,9 @@ const WAYN={1:'① Cách chính',2:'② Dự phòng 1',3:'③ Dự phòng 2'};
 let S={pos:null,obj:['','',''],ways:{},info:{},lock:null,appr:{ql:{},hcns:{}}}, downloads=undefined, cur=null; const openCards=new Set();
 /* mở trang luôn bắt đầu trống – không khôi phục phiếu cũ */
 let H={files:[]}; try{const h=JSON.parse(localStorage.getItem('kpi-tnc-hcns')||'null'); if(h&&h.files) H=h;}catch(e){}
-$('#ver').textContent='Công ty TNHH MTV Thuận Nhĩ · bản '+D.version+' · web 01/10 11:44'; $('#fVer').value=D.version;
-const INFO=['fName','fId','fUnit','fUnitOther','fFrom','fTo','fDate','fMgr'];
-const unitText=I=>I.fUnit==='__other'?(I.fUnitOther||''):(I.fUnit||'');
+$('#ver').textContent='Công ty TNHH MTV Thuận Nhĩ · bản '+D.version+' · web 01/10 12:00'; $('#fVer').value=D.version;
+const INFO=['fName','fId','fUnit','fFrom','fTo','fDate','fMgr'];
+const unitText=I=>I.fUnit==='__other'?(I.fUnitOther||''):(I.fUnit||'');  // __other: phiếu cũ
 const fmtD=d=>{if(!d)return'';const [y,m,dd]=d.split('-');return dd&&m?`${dd}/${m}/${y}`:d};
 const period=I=>I.fFrom||I.fTo?`${fmtD(I.fFrom)} – ${fmtD(I.fTo)}`:'';
 function save(){try{localStorage.setItem('kpi-tnc-dk',JSON.stringify(S));localStorage.setItem('kpi-tnc-hcns',JSON.stringify(H))}catch(e){}}
@@ -363,10 +362,9 @@ document.querySelectorAll('nav.tabs button').forEach(b=>b.addEventListener('clic
 const groups=[...new Set(D.positions.map(p=>p.group))];
 const posOptions=selv=>'<option value="">— Chọn vị trí —</option>'+groups.map(g=>`<optgroup label="${esc(g)}">`+D.positions.filter(p=>p.group===g).map(p=>`<option value="${p.code}" ${p.code===selv?'selected':''}>${esc(p.code)} · ${esc(p.name)}</option>`).join('')+'</optgroup>').join('');
 $('#fPos').innerHTML=posOptions(S.pos);
-INFO.forEach(id=>{const el=$('#'+id);el.value=S.info[id]||'';el.addEventListener('input',()=>{S.info[id]=el.value;if(id==='fUnit')$('#unitOtherRow').hidden=el.value!=='__other';save();if(['fName','fUnit','fUnitOther'].includes(id))renderGrid()})});
-$('#unitOtherRow').hidden=S.info.fUnit!=='__other';
+INFO.forEach(id=>{const el=$('#'+id);el.value=S.info[id]||'';el.addEventListener('input',()=>{S.info[id]=el.value;save();if(['fName','fUnit'].includes(id))renderGrid()})});
 $('#fPos').addEventListener('change',e=>{S.pos=e.target.value||null;S.obj=['','',''];S.ways={};S.appr={ql:{},hcns:{}};S.id=null;save();renderGrid()});
-$('#btnReset').addEventListener('click',()=>{S={id:null,pos:null,obj:['','',''],ways:{},info:{},lock:null,appr:{ql:{},hcns:{}}};save();$('#fPos').value='';INFO.forEach(id=>$('#'+id).value='');$('#unitOtherRow').hidden=true;renderGrid()});
+$('#btnReset').addEventListener('click',()=>{S={id:null,pos:null,obj:['','',''],ways:{},info:{},lock:null,appr:{ql:{},hcns:{}}};save();$('#fPos').value='';INFO.forEach(id=>$('#'+id).value='');renderGrid()});
 function check(){
   const p=posOf(S.pos); if(!p) return {ok:false,cls:'',msg:'Chọn vị trí ở dòng “Vị trí” phía trên để hiện danh sách Objective.'};
   const chosen=S.obj.filter(Boolean), must=selCards(p).filter(c=>c.m).map(c=>c.o), miss=must.filter(m=>!chosen.includes(m));
@@ -532,7 +530,7 @@ $('#btnXlsx').addEventListener('click',()=>{
 });
 function readPhieu(file){return new Promise((res,rej)=>{const fr=new FileReader();fr.onload=()=>{try{const wb=XLSX.read(fr.result,{type:'array'});const ws=wb.Sheets['DATA'];if(!ws)throw new Error('Không phải phiếu từ trang này (thiếu sheet DATA)');const a=XLSX.utils.sheet_to_json(ws,{header:1});const P=JSON.parse(a[1][0]);if(!P.pos||!posOf(P.pos))throw new Error('Phiếu không có vị trí hợp lệ');if(!P.id)P.id='CU'+hash(a[1][0]).toUpperCase();P.sigOk=!P.sig||P.sig===sign(P);res(P)}catch(e){rej(e)}};fr.onerror=()=>rej(new Error('Không đọc được file'));fr.readAsArrayBuffer(file)})}
 $('#fileIn').addEventListener('change',async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;
-  try{const P=await readPhieu(f);S={id:P.id,pos:P.pos,obj:P.obj,ways:P.ways||{},info:P.info||{},lock:P.lock||null,appr:P.appr||{ql:{},hcns:{}}};save();$('#fPos').value=S.pos;INFO.forEach(id=>$('#'+id).value=S.info[id]||'');$('#unitOtherRow').hidden=S.info.fUnit!=='__other';renderGrid();toast(S.lock?'Đã mở phiếu (bản khóa – chỉ xem)':'Đã mở phiếu, có thể sửa tiếp')}catch(err){toast(err.message)}});
+  try{const P=await readPhieu(f);S={id:P.id,pos:P.pos,obj:P.obj,ways:P.ways||{},info:P.info||{},lock:P.lock||null,appr:P.appr||{ql:{},hcns:{}}};save();$('#fPos').value=S.pos;INFO.forEach(id=>$('#'+id).value=S.info[id]||'');renderGrid();toast(S.lock?'Đã mở phiếu (bản khóa – chỉ xem)':'Đã mở phiếu, có thể sửa tiếp')}catch(err){toast(err.message)}});
 function syncGTop(){const t=$('#gTop'),b=$('#gBox');if(!t||!b)return;$('#gTopIn').style.width=$('#grid').scrollWidth+'px';t.style.display=$('#grid').scrollWidth>b.clientWidth+2?'':'none';const h=document.querySelector('header.top');t.style.top=(h?h.getBoundingClientRect().height:0)+'px'}
 (()=>{const t=$('#gTop'),b=$('#gBox');if(!t||!b)return;t.addEventListener('scroll',()=>{b.scrollLeft=t.scrollLeft});b.addEventListener('scroll',()=>{t.scrollLeft=b.scrollLeft});window.addEventListener('resize',syncGTop);setTimeout(syncGTop,400)})();
 /* ---------- HCNS ---------- */
